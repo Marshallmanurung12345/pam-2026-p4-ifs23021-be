@@ -16,8 +16,6 @@ Content-Type: application/json
 GET {{BaseUrl}}/profile/photo
 Content-Type: application/json
 
-
-
 ## Destinations / Wisata Samosir
 ## ===========================================
 
