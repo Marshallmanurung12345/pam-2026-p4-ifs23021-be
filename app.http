@@ -1,11 +1,12 @@
 ## Global Variabel
-@BaseUrl = https://pam-2026-p4-ifs18005-be.delcom.org:8080
-#@BaseUrl = http://127.0.0.1:8000
+@BaseUrl = http://127.0.0.1:8000
+#@BaseUrl = https://pam-2026-p4-ifs23021-be.delcom.org:8080
 
-## Profile
+
+## Profile (opsional kalau masih dipakai)
 ## ===========================================
 
-### Mengambil semua data tumbuhan
+### Mengambil data profile
 # @name GetProfile
 GET {{BaseUrl}}/profile
 Content-Type: application/json
@@ -16,40 +17,52 @@ GET {{BaseUrl}}/profile/photo
 Content-Type: application/json
 
 
-## Plants
+
+## Destinations / Wisata Samosir
 ## ===========================================
 
-### Mengambil semua data tumbuhan
-# @name GetAllPlants
-GET {{BaseUrl}}/plants?search=
+### Mengambil semua data destinasi wisata
+# @name GetAllDestinations
+GET {{BaseUrl}}/destinations?search=
 Content-Type: application/json
 
-#> {%
-#    client.global.set("plantId", response.body.data.plants[0].id);
-#    console.log(client.global.get("plantId"))
-#%}
+> {%
+    // Asumsi: response.body.data.destinations[0].id
+    // Kalau struktur response kamu berbeda, sesuaikan bagian ini.
+    client.global.set("destinationId", response.body.data.destinations[0].id);
+    console.log(client.global.get("destinationId"))
+%}
 
-### Menambahkan data tumbuhan baru
-# @name PostPlants
-POST {{BaseUrl}}/plants
+
+### Menambahkan data destinasi wisata baru (multipart + foto)
+# @name PostDestination
+POST {{BaseUrl}}/destinations
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
-Content-Disposition: form-data; name="nama"
+Content-Disposition: form-data; name="namaWisata"
 
-Kangkung
+Batu Hoda
 --WebAppBoundary
 Content-Disposition: form-data; name="deskripsi"
 
-Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+Spot wisata terkenal di Samosir dengan batu unik di tepi Danau Toba.
 --WebAppBoundary
-Content-Disposition: form-data; name="manfaat"
+Content-Disposition: form-data; name="lokasi"
 
-Membantu detoksifikasi dan menjaga kesehatan mata
+Samosir, Sumatera Utara
 --WebAppBoundary
-Content-Disposition: form-data; name="efekSamping"
+Content-Disposition: form-data; name="kategori"
 
-Dapat menyebabkan kembung
+Alam
+--WebAppBoundary
+Content-Disposition: form-data; name="hargaTiket"
+
+10000
+--WebAppBoundary
+Content-Disposition: form-data; name="jamBuka"
+
+08:00-18:00
 --WebAppBoundary
 Content-Disposition: form-data; name="file"; filename="example.png"
 Content-Type: image/png
@@ -58,64 +71,86 @@ Content-Type: image/png
 --WebAppBoundary--
 
 > {%
-    client.global.set("plantId", response.body.data.plantId);
-    console.log(client.global.get("plantId"))
+    // Asumsi: response.body.data.destinationId
+    // (kalau backend kamu balikin id dengan key lain, sesuaikan)
+    client.global.set("destinationId", response.body.data.destinationId);
+    console.log(client.global.get("destinationId"))
 %}
 
-### Mengambil data tumbuhan berdasarkan id-nya
-# @name GetPlantById
-GET {{BaseUrl}}/plants/{{plantId}}
+
+### Mengambil data destinasi berdasarkan id-nya
+# @name GetDestinationById
+GET {{BaseUrl}}/destinations/{{destinationId}}
 Content-Type: application/json
 
-### Melihat gambar tumbuhan
-# @name GetPlantImageById
-GET {{BaseUrl}}/plants/{{plantId}}/image
+
+### Melihat gambar destinasi (kalau endpointnya /image)
+# @name GetDestinationImageById
+GET {{BaseUrl}}/destinations/{{destinationId}}/image
 Content-Type: application/json
 
-### Mengubah hanya data plant berdasarkan id-nya
-# @name PutPlantOnlyData
-PUT {{BaseUrl}}/plants/{{plantId}}
+
+### Mengubah hanya data destinasi (tanpa ganti foto)
+# @name PutDestinationOnlyData
+PUT {{BaseUrl}}/destinations/{{destinationId}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
-Content-Disposition: form-data; name="nama"
+Content-Disposition: form-data; name="namaWisata"
 
-Brokoli Update
+Batu Hoda Update
 --WebAppBoundary
 Content-Disposition: form-data; name="deskripsi"
 
-Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+Update deskripsi Batu Hoda untuk aplikasi wisata Samosir.
 --WebAppBoundary
-Content-Disposition: form-data; name="manfaat"
+Content-Disposition: form-data; name="lokasi"
 
-Membantu detoksifikasi dan menjaga kesehatan mata
+Samosir, Sumatera Utara
 --WebAppBoundary
-Content-Disposition: form-data; name="efekSamping"
+Content-Disposition: form-data; name="kategori"
 
-Dapat menyebabkan kembung
+Alam
+--WebAppBoundary
+Content-Disposition: form-data; name="hargaTiket"
+
+15000
+--WebAppBoundary
+Content-Disposition: form-data; name="jamBuka"
+
+08:00-18:00
 --WebAppBoundary--
 
-### Mengubah gambar dan data plant berdasarkan id-nya
-# @name PutPlant
-PUT {{BaseUrl}}/plants/{{plantId}}
+
+### Mengubah data + gambar destinasi
+# @name PutDestination
+PUT {{BaseUrl}}/destinations/{{destinationId}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
-Content-Disposition: form-data; name="nama"
+Content-Disposition: form-data; name="namaWisata"
 
-Brokoli
+Batu Hoda
 --WebAppBoundary
 Content-Disposition: form-data; name="deskripsi"
 
-Brokoli adalah sayuran hijau yang kaya vitamin, mineral, dan serat
+Batu Hoda adalah spot foto populer di Samosir, dekat Danau Toba.
 --WebAppBoundary
-Content-Disposition: form-data; name="manfaat"
+Content-Disposition: form-data; name="lokasi"
 
-Membantu detoksifikasi dan menjaga kesehatan mata
+Samosir, Sumatera Utara
 --WebAppBoundary
-Content-Disposition: form-data; name="efekSamping"
+Content-Disposition: form-data; name="kategori"
 
-Dapat menyebabkan kembung
+Alam
+--WebAppBoundary
+Content-Disposition: form-data; name="hargaTiket"
+
+10000
+--WebAppBoundary
+Content-Disposition: form-data; name="jamBuka"
+
+08:00-18:00
 --WebAppBoundary
 Content-Disposition: form-data; name="file"; filename="example.png"
 Content-Type: image/png
@@ -123,7 +158,8 @@ Content-Type: image/png
 < ./example.png
 --WebAppBoundary--
 
-### Menghapus data plant berdasarkan id-nya
-# @name DeletePlant
-DELETE {{BaseUrl}}/plants/{{plantId}}
+
+### Menghapus data destinasi berdasarkan id-nya
+# @name DeleteDestination
+DELETE {{BaseUrl}}/destinations/{{destinationId}}
 Content-Type: application/json
