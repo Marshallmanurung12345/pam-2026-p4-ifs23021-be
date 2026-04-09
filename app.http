@@ -561,3 +561,6 @@ Content-Type: image/png
 # @name DeleteCulture
 DELETE {{BaseUrl}}/cultures/{{cultureId}}
 Content-Type: application/json
+
+
+
