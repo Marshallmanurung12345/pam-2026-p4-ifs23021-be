@@ -127,3 +127,10 @@ Content-Type: image/png
 # @name DeletePlant
 DELETE {{BaseUrl}}/plants/{{plantId}}
 Content-Type: application/json
+
+
+
+
+
+
+

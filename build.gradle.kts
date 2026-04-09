@@ -42,3 +42,7 @@ dependencies {
     // External
     implementation("io.github.cdimascio:dotenv-kotlin:${dotenv_version}")
 }
+
+
+
+
