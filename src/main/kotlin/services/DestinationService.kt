@@ -17,12 +17,12 @@ import java.util.UUID
 
 class DestinationService(private val repo: IDestinationRepository) {
 
-    private fun destinationListPayload(items: List<Any>) = mapOf(
+    private fun destinationListPayload(items: List<org.delcom.entities.Destination>) = mapOf(
         "destinations" to items,
         "wisata" to items,
     )
 
-    private fun destinationItemPayload(item: Any) = mapOf(
+    private fun destinationItemPayload(item: org.delcom.entities.Destination) = mapOf(
         "destination" to item,
         "wisata" to item,
     )

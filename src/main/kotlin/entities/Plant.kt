@@ -2,7 +2,6 @@ package org.delcom.entities
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -15,8 +14,6 @@ data class Plant(
     var manfaat: String,
     var efekSamping: String,
 
-    @Contextual
     val createdAt: Instant = Clock.System.now(),
-    @Contextual
     var updatedAt: Instant = Clock.System.now(),
 )

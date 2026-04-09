@@ -2,7 +2,6 @@ package org.delcom.entities
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -17,8 +16,6 @@ data class Culinary(
     var lokasiTersedia: String,
     var pathGambar: String? = null,
 
-    @Contextual
     val createdAt: Instant = Clock.System.now(),
-    @Contextual
     var updatedAt: Instant = Clock.System.now(),
 )
