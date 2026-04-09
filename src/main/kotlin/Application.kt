@@ -17,7 +17,6 @@ import java.io.File
 
 fun main(args: Array<String>) {
     loadEnvironmentVariables()
-
     EngineMain.main(args)
 }
 
@@ -26,11 +25,7 @@ private fun loadEnvironmentVariables() {
         File(".env").exists() -> ".env"
         File(".env.example").exists() -> ".env.example"
         else -> null
-    }
-
-    if (envFilename == null) {
-        return
-    }
+    } ?: return
 
     val env = dotenv {
         directory = "."
@@ -39,9 +34,10 @@ private fun loadEnvironmentVariables() {
         ignoreIfMalformed = true
     }
 
-    env.entries().forEach {
-        if (System.getProperty(it.key).isNullOrBlank()) {
-            System.setProperty(it.key, it.value)
+    env.entries().forEach { entry ->
+        // Prioritas: env OS > system property > nilai dari file .env
+        if (System.getenv(entry.key).isNullOrBlank() && System.getProperty(entry.key).isNullOrBlank()) {
+            System.setProperty(entry.key, entry.value)
         }
     }
 }
@@ -68,15 +64,32 @@ fun Application.module() {
 }
 
 fun Application.configureCors() {
-    val allowedOrigins = loadAllowedOrigins(environment)
-    val useDevelopmentOriginFallback = System.getProperty("CORS_ALLOWED_ORIGINS").isNullOrBlank()
+    // Baca CORS_ALLOWED_ORIGINS dari env OS terlebih dahulu, baru dari system property
+    val rawOrigins = (System.getenv("CORS_ALLOWED_ORIGINS") ?: System.getProperty("CORS_ALLOWED_ORIGINS") ?: "")
+        .split(",")
+        .map(String::trim)
+        .filter(String::isNotBlank)
+
+    // Mode development: aktif jika CORS_ALLOWED_ORIGINS tidak diset sama sekali
+    val isDevelopmentMode = rawOrigins.isEmpty()
 
     install(CORS) {
-        if ("*" in allowedOrigins) {
+        if (!isDevelopmentMode && "*" in rawOrigins) {
+            // Izinkan semua origin (production explicit wildcard)
             anyHost()
+        } else if (!isDevelopmentMode) {
+            // Hanya izinkan origin yang terdaftar
+            rawOrigins.forEach { origin ->
+                allowHost(
+                    host = Url(origin).let { "${it.host}:${it.port}" }.trimEnd(':'),
+                    schemes = listOf(Url(origin).protocol.name)
+                )
+            }
         } else {
+            // Development mode: izinkan semua localhost/127.0.0.1 dengan port apapun
+            // (termasuk Flutter Web yang menggunakan port acak)
             allowOrigins { origin ->
-                origin in allowedOrigins || (useDevelopmentOriginFallback && isDevelopmentOrigin(origin))
+                isDevelopmentOrigin(origin)
             }
         }
 
@@ -97,35 +110,6 @@ fun Application.configureCors() {
 }
 
 private fun isDevelopmentOrigin(origin: String): Boolean = runCatching {
-    val parsedOrigin = Url(origin)
-    parsedOrigin.protocol.name == "http" && parsedOrigin.host in setOf("localhost", "127.0.0.1")
+    val parsed = Url(origin)
+    parsed.protocol.name == "http" && parsed.host in setOf("localhost", "127.0.0.1")
 }.getOrDefault(false)
-
-private fun loadAllowedOrigins(environment: ApplicationEnvironment): List<String> {
-    val configuredOrigins = System.getProperty("CORS_ALLOWED_ORIGINS")
-        ?.split(",")
-        ?.map(String::trim)
-        ?.filter(String::isNotBlank)
-        .orEmpty()
-
-    if (configuredOrigins.isNotEmpty()) {
-        return configuredOrigins
-    }
-
-    val deploymentHost = environment.config.propertyOrNull("ktor.deployment.host")?.getString()
-    return buildList {
-        add("http://localhost:3000")
-        add("http://127.0.0.1:3000")
-        add("http://localhost:4173")
-        add("http://127.0.0.1:4173")
-        add("http://localhost:5173")
-        add("http://127.0.0.1:5173")
-        add("http://localhost:8080")
-        add("http://127.0.0.1:8080")
-
-        if (!deploymentHost.isNullOrBlank() && deploymentHost != "0.0.0.0") {
-            add("http://$deploymentHost:3000")
-            add("http://$deploymentHost:8080")
-        }
-    }.distinct()
-}
