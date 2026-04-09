@@ -18,3 +18,5 @@ class CultureDAO(id: EntityID<UUID>) : Entity<UUID>(id) {
     var createdAt          by CultureTable.createdAt
     var updatedAt          by CultureTable.updatedAt
 }
+
+

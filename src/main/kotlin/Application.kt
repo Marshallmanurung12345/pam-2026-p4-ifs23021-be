@@ -10,18 +10,37 @@ import kotlinx.serialization.json.Json
 import org.delcom.module.appModule
 import org.delcom.helpers.configureDatabases
 import org.koin.ktor.plugin.Koin
+import java.io.File
 
 fun main(args: Array<String>) {
-    val dotenv = dotenv {
-        directory = "."
-        ignoreIfMissing = false
-    }
-
-    dotenv.entries().forEach {
-        System.setProperty(it.key, it.value)
-    }
+    loadEnvironmentVariables()
 
     EngineMain.main(args)
+}
+
+private fun loadEnvironmentVariables() {
+    val envFilename = when {
+        File(".env").exists() -> ".env"
+        File(".env.example").exists() -> ".env.example"
+        else -> null
+    }
+
+    if (envFilename == null) {
+        return
+    }
+
+    val env = dotenv {
+        directory = "."
+        filename = envFilename
+        ignoreIfMissing = true
+        ignoreIfMalformed = true
+    }
+
+    env.entries().forEach {
+        if (System.getProperty(it.key).isNullOrBlank()) {
+            System.setProperty(it.key, it.value)
+        }
+    }
 }
 
 fun Application.module() {
