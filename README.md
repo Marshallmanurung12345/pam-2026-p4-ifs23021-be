@@ -12,6 +12,18 @@ Gunakan salah satu perintah berikut:
 
 Secara default aplikasi berjalan di `http://127.0.0.1:8000` sesuai konfigurasi [application.yaml](/D:/SEMESTER%206/PAM/pam-2026-p7-ifs23021-be/src/main/resources/application.yaml).
 
+## Konfigurasi CORS
+
+Backend membaca origin frontend yang diizinkan dari env `CORS_ALLOWED_ORIGINS`.
+
+Contoh:
+
+- `CORS_ALLOWED_ORIGINS=http://localhost:3000`
+- `CORS_ALLOWED_ORIGINS=http://localhost:3000,https://frontend.example.com`
+
+Method yang diizinkan: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`.
+Header yang diizinkan: `Content-Type`, `Authorization`, `Accept`, `Origin`.
+
 ## HTTP Request Collection
 
 File [app.http](/D:/SEMESTER%206/PAM/pam-2026-p7-ifs23021-be/app.http) sudah disusun untuk pengujian manual semua endpoint:

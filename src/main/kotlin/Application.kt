@@ -3,6 +3,7 @@ package org.delcom
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.Url
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
@@ -46,21 +47,7 @@ private fun loadEnvironmentVariables() {
 }
 
 fun Application.module() {
-
-    install(CORS) {
-        anyHost()
-        allowMethod(HttpMethod.Get)
-        allowMethod(HttpMethod.Post)
-        allowMethod(HttpMethod.Put)
-        allowMethod(HttpMethod.Delete)
-        allowMethod(HttpMethod.Options)
-        allowHeader(HttpHeaders.ContentType)
-        allowHeader(HttpHeaders.Authorization)
-        allowHeader(HttpHeaders.Accept)
-        allowHeader(HttpHeaders.Origin)
-        allowHeader("X-Requested-With")
-        allowNonSimpleContentTypes = true
-    }
+    configureCors()
 
     install(ContentNegotiation) {
         json(
@@ -78,4 +65,69 @@ fun Application.module() {
 
     configureDatabases()
     configureRouting()
+}
+
+fun Application.configureCors() {
+    val allowedOrigins = loadAllowedOrigins(environment)
+
+    install(CORS) {
+        allowedOrigins.forEach { origin ->
+            if (origin == "*") {
+                anyHost()
+            } else {
+                val parsedOrigin = Url(origin)
+                val hostWithPort = buildString {
+                    append(parsedOrigin.host)
+                    if (parsedOrigin.port != parsedOrigin.protocol.defaultPort) {
+                        append(":")
+                        append(parsedOrigin.port)
+                    }
+                }
+
+                allowHost(
+                    host = hostWithPort,
+                    schemes = listOf(parsedOrigin.protocol.name)
+                )
+            }
+        }
+
+        allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Options)
+
+        allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.Accept)
+        allowHeader(HttpHeaders.Origin)
+
+        allowNonSimpleContentTypes = true
+        maxAgeInSeconds = 3_600
+    }
+}
+
+private fun loadAllowedOrigins(environment: ApplicationEnvironment): List<String> {
+    val configuredOrigins = System.getProperty("CORS_ALLOWED_ORIGINS")
+        ?.split(",")
+        ?.map(String::trim)
+        ?.filter(String::isNotBlank)
+        .orEmpty()
+
+    if (configuredOrigins.isNotEmpty()) {
+        return configuredOrigins
+    }
+
+    val deploymentHost = environment.config.propertyOrNull("ktor.deployment.host")?.getString()
+    return buildList {
+        add("http://localhost:3000")
+        add("http://127.0.0.1:3000")
+        add("http://localhost:8080")
+        add("http://127.0.0.1:8080")
+
+        if (!deploymentHost.isNullOrBlank() && deploymentHost != "0.0.0.0") {
+            add("http://$deploymentHost:3000")
+            add("http://$deploymentHost:8080")
+        }
+    }.distinct()
 }
