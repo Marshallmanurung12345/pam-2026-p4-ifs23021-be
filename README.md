@@ -21,6 +21,8 @@ Contoh:
 
 - `CORS_ALLOWED_ORIGINS=http://localhost:3000`
 - `CORS_ALLOWED_ORIGINS=http://localhost:3000,https://frontend.example.com`
+- `CORS_ALLOWED_ORIGINS=https://pam-2026-p7-ifs23021.marshalll.fun:8080`
+- `CORS_ALLOWED_ORIGINS=https://*.marshalll.fun:8080`
 - kosongkan `CORS_ALLOWED_ORIGINS` untuk mengizinkan frontend lokal dengan port acak pada `http` maupun `https`
 
 Method yang diizinkan: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`.

@@ -14,6 +14,7 @@ import org.delcom.module.appModule
 import org.delcom.helpers.configureDatabases
 import org.koin.ktor.plugin.Koin
 import java.io.File
+import kotlin.text.Regex
 
 fun main(args: Array<String>) {
     loadEnvironmentVariables()
@@ -78,12 +79,11 @@ fun Application.configureCors() {
             // Izinkan semua origin (production explicit wildcard)
             anyHost()
         } else if (!isDevelopmentMode) {
-            // Hanya izinkan origin yang terdaftar
-            rawOrigins.forEach { origin ->
-                allowHost(
-                    host = Url(origin).let { "${it.host}:${it.port}" }.trimEnd(':'),
-                    schemes = listOf(Url(origin).protocol.name)
-                )
+            // Production mode: cocokkan origin persis seperti yang dikirim browser.
+            allowOrigins { origin ->
+                rawOrigins.any { allowedOrigin ->
+                    matchesAllowedOrigin(allowedOrigin, origin)
+                }
             }
         } else {
             // Development mode: izinkan semua localhost/127.0.0.1 dengan port apapun
@@ -113,3 +113,20 @@ private fun isDevelopmentOrigin(origin: String): Boolean = runCatching {
     val parsed = Url(origin)
     parsed.protocol.name in setOf("http", "https") && parsed.host in setOf("localhost", "127.0.0.1")
 }.getOrDefault(false)
+
+private fun matchesAllowedOrigin(allowedOrigin: String, requestOrigin: String): Boolean {
+    val normalizedAllowedOrigin = normalizeOrigin(allowedOrigin)
+    val normalizedRequestOrigin = normalizeOrigin(requestOrigin)
+
+    if ('*' !in normalizedAllowedOrigin) {
+        return normalizedAllowedOrigin == normalizedRequestOrigin
+    }
+
+    val regexPattern = normalizedAllowedOrigin
+        .split("*")
+        .joinToString(".*") { Regex.escape(it) }
+
+    return Regex("^$regexPattern$").matches(normalizedRequestOrigin)
+}
+
+private fun normalizeOrigin(origin: String): String = origin.trim().removeSuffix("/")

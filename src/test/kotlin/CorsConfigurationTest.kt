@@ -49,6 +49,55 @@ class CorsConfigurationTest {
     }
 
     @Test
+    fun `preflight get request returns cors headers for deployed frontend origin`() = testApplication {
+        System.setProperty(
+            "CORS_ALLOWED_ORIGINS",
+            "https://pam-2026-p7-ifs23021.marshalll.fun:8080"
+        )
+
+        application {
+            configureCors()
+            routing {
+                get("/") { }
+            }
+        }
+
+        val response = client.options("/") {
+            header(HttpHeaders.Origin, "https://pam-2026-p7-ifs23021.marshalll.fun:8080")
+            header(HttpHeaders.AccessControlRequestMethod, HttpMethod.Get.value)
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            "https://pam-2026-p7-ifs23021.marshalll.fun:8080",
+            response.headers[HttpHeaders.AccessControlAllowOrigin]
+        )
+    }
+
+    @Test
+    fun `preflight get request returns cors headers for configured wildcard subdomain`() = testApplication {
+        System.setProperty("CORS_ALLOWED_ORIGINS", "https://*.marshalll.fun:8080")
+
+        application {
+            configureCors()
+            routing {
+                get("/") { }
+            }
+        }
+
+        val response = client.options("/") {
+            header(HttpHeaders.Origin, "https://pam-2026-p7-ifs23021.marshalll.fun:8080")
+            header(HttpHeaders.AccessControlRequestMethod, HttpMethod.Get.value)
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(
+            "https://pam-2026-p7-ifs23021.marshalll.fun:8080",
+            response.headers[HttpHeaders.AccessControlAllowOrigin]
+        )
+    }
+
+    @Test
     fun `preflight delete request returns cors headers for localhost with random port in development`() = testApplication {
         application {
             configureCors()
