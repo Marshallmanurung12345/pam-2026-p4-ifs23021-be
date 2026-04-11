@@ -22,3 +22,4 @@ class AccommodationDAO(id: EntityID<UUID>) : Entity<UUID>(id) {
     var createdAt   by AccommodationTable.createdAt
     var updatedAt   by AccommodationTable.updatedAt
 }
+
